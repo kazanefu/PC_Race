@@ -13,5 +13,6 @@ opt-level = 3
 dynamic_linking = ["bevy/dynamic_linking"]
 
 [dependencies]
-bevy = "0.17.3"
+bevy = "0.18.0"
 sysinfo = "0.37.2"
+bevy_rapier3d = "0.32.0"
