@@ -1,0 +1,15 @@
+    Checking pc_race v0.1.0 (C:\Users\hayate\bevy_projects\pc_race)
+error[E0599]: no method named `get_single` found for struct `bevy::prelude::Query<'world, 'state, D, F>` in the current scope
+   --> src\game.rs:314:34
+    |
+314 |     if let Ok(transform) = query.get_single() {
+    |                                  ^^^^^^^^^^
+    |
+help: there is a method `single` with a similar name
+    |
+314 -     if let Ok(transform) = query.get_single() {
+314 +     if let Ok(transform) = query.single() {
+    |
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `pc_race` (bin "pc_race") due to 1 previous error

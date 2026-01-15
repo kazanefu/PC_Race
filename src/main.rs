@@ -1,61 +1,59 @@
-use bevy::{ecs::query, prelude::*,light::CascadeShadowConfigBuilder};
-use std::f32::consts::PI;
+use bevy::prelude::*;
 
-mod character;
+mod calc_info;
 mod car;
-mod spawner;
+mod game;
+mod home;
+mod mode_select;
+mod resources;
+mod result;
+mod settings;
+mod setup_flow;
+mod states;
+mod ui;
+
+use calc_info::CalcInfoPlugin;
+use game::GamePlugin;
+use home::HomePlugin;
+use mode_select::ModeSelectPlugin;
+use resources::{BaseCarStatus, CarStatus, PcMonitor, PcStatus};
+use result::ResultPlugin;
+use settings::SettingsPlugin;
+use setup_flow::SetupFlowPlugin;
+use states::AppState;
+use ui::styles::UiStylesPlugin;
 
 fn main() {
-    println!("hello world");
     App::new()
-        .add_plugins(DefaultPlugins.set(WindowPlugin {
-            primary_window: Some(Window {
-                title: "PC Race".to_string(),
-                resolution: (990, 540).into(),
-                ..default()
-            }),
-            ..default()
-        }))
-        .add_systems(Startup, startup)
-        .add_systems(Update, move_square)
+        // 1. Core Engine Plugins
+        .add_plugins(DefaultPlugins)
+        // 2. State & Resource Initialization
+        // Initializing the application state machine
+        .init_state::<AppState>()
+        // Persistent hardware monitoring and car status resources
+        .init_resource::<PcMonitor>()
+        .init_resource::<PcStatus>()
+        .init_resource::<CarStatus>()
+        .init_resource::<BaseCarStatus>()
+        // 3. User Interface & Screen Plugins
+        .add_plugins(UiStylesPlugin)
+        .add_plugins(HomePlugin)
+        .add_plugins(ModeSelectPlugin)
+        .add_plugins(SetupFlowPlugin)
+        .add_plugins(ResultPlugin)
+        .add_plugins(SettingsPlugin)
+        .add_plugins(CalcInfoPlugin)
+        // 4. Gameplay Logic Plugins
+        .add_plugins(GamePlugin)
+        .add_plugins(car::CarPlugin)
+        // 5. Global Systems
+        .add_systems(Startup, setup_camera)
         .run();
 }
 
-#[derive(Component)]
-struct Mover;
-
-fn startup(mut commands: Commands) {
+fn setup_camera(mut commands: Commands) {
     commands.spawn((
         Camera3d::default(),
-        Transform::from_xyz(0.0, 0.0, 0.0).looking_at(vec3(1.0, 0.0, 0.0), Vec3::Z),
+        Transform::from_xyz(0.0, 10.0, 20.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
-    // directional 'sun' light
-    commands.spawn((
-        DirectionalLight {
-            illuminance: light_consts::lux::OVERCAST_DAY,
-            shadows_enabled: true,
-            ..default()
-        },
-        Transform {
-            translation: Vec3::new(0.0, 2.0, 0.0),
-            rotation: Quat::from_rotation_x(-PI / 4.),
-            ..default()
-        },
-        // The default cascade config is designed to handle large scenes.
-        // As this example has a much smaller world, we can tighten the shadow
-        // bounds for better visual quality.
-        CascadeShadowConfigBuilder {
-            first_cascade_far_bound: 4.0,
-            maximum_distance: 10.0,
-            ..default()
-        }
-        .build(),
-    ));
-
-}
-
-fn move_square(time: Res<Time>, mut query: Query<&mut Transform, With<Mover>>) {
-    for mut transform in &mut query {
-        transform.translation.x += 100.0 * time.delta_secs();
-    }
 }
